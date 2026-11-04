@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Anvar Bakery — Kuryer Paneli</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --success: #16a34a;
+      --yandex: #fc3f1d;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 14px; }
+    .header { background: var(--primary); color: white; padding: 14px; border-radius: 12px; margin-bottom: 14px; }
+    .card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 10px; }
+    .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+    .btn { padding: 9px; border-radius: 8px; text-decoration: none; font-size: 0.8rem; font-weight: 700; text-align: center; border: none; cursor: pointer; }
+    .btn-yandex { background: var(--yandex); color: white; }
+    .btn-google { background: #4285f4; color: white; }
+    .btn-done { background: var(--success); color: white; grid-column: span 2; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h2 style="font-size:1.1rem;">🛵 Anvar Bakery — Kuryer Paneli</h2>
+    <p style="font-size:0.8rem; opacity:0.9;" id="shift-title">Smena tekshirilmoqda...</p>
+  </div>
+
+  <h3 style="font-size:0.95rem; margin-bottom:8px;">📦 Smenangizdagi faol buyurtmalar:</h3>
+  <div id="courier-orders"></div>
+
+  <script>
+    const tg = window.Telegram?.WebApp;
+    if (tg) tg.expand();
+
+    function getShift() {
+      const h = new Date().getHours();
+      return (h >= 8 && h < 20) ? "Kunduzgi smena (08:00 - 20:00)" : "Tungi smena (20:00 - 08:00)";
+    }
+    document.getElementById("shift-title").innerText = `Joriy: ${getShift()}`;
+
+    let courierOrders = [
+      { id: 101, client: "Sherzodbek", phone: "+998 90 123 45 67", items: "Hot-dog (katta) — 4 paket", total: 100000, time: "Tezkor (2 soat)", lat: 41.3200, lon: 69.2500 }
+    ];
+
+    function renderOrders() {
+      const cont = document.getElementById("courier-orders");
+      cont.innerHTML = "";
+      if (courierOrders.length === 0) { cont.innerHTML = "<p style='color:var(--muted);'>Buyurtmalar yo'q.</p>"; return; }
+
+      courierOrders.forEach(o => {
+        const yandex = `yandexnavi://build_route_on_map?lat_to=${o.lat}&lon_to=${o.lon}`;
+        const google = `https://www.google.com/maps/dir/?api=1&destination=${o.lat},${o.lon}`;
+        cont.innerHTML += `
+          <div class="card">
+            <div style="display:flex; justify-content:space-between;"><b>#${o.id} — ${o.client}</b><span style="font-size:0.75rem; background:#dbeafe; color:#1e40af; padding:2px 6px; border-radius:4px; font-weight:700;">Yo'lda</span></div>
+            <div style="font-size:0.8rem; color:var(--muted); margin:4px 0;">📱 <a href="tel:${o.phone}">${o.phone}</a> | ⏰ ${o.time}</div>
+            <div style="font-size:0.85rem;">${o.items}</div>
+            <b style="display:block; margin:6px 0;">${o.total.toLocaleString()} so'm</b>
+            <div class="actions">
+              <a href="${yandex}" class="btn btn-yandex">🧭 Yandex</a>
+              <a href="${google}" target="_blank" class="btn btn-google">🗺 Google</a>
+              <button class="btn btn-done" onclick="finishOrder(${o.id})">✅ Topshirdim (Yakunlash)</button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function finishOrder(id) {
+      courierOrders = courierOrders.filter(o => o.id !== id);
+      renderOrders();
+      alert(`✅ #${id} buyurtma topshirildi!`);
+    }
+
+    renderOrders();
+  </script>
+</body>
+</html>
